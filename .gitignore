@@ -1,0 +1,18 @@
+# virtual env
+.venv/
+
+# python cache
+__pycache__/
+*.pyc
+
+# mac
+.DS_Store
+
+# env / secrets
+.env
+.env.*
+!.env.example
+
+# test / type checker caches
+.pytest_cache/
+.mypy_cache/
