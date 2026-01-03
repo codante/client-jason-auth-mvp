@@ -16,3 +16,6 @@ __pycache__/
 # test / type checker caches
 .pytest_cache/
 .mypy_cache/
+
+# Streamlit secrets (do NOT commit)
+.streamlit/secrets.toml
