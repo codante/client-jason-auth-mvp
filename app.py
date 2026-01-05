@@ -2,9 +2,58 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 from datetime import datetime
+from supabase import create_client
 
 # 页面配置
-st.set_page_config(page_title="报表台", layout="wide")
+st.set_page_config(page_title="报表台（Auth MVP）", layout="wide")
+
+@st.cache_resource
+def get_supabase_client():
+    url = st.secrets["SUPABASE_URL"]
+    key = st.secrets["SUPABASE_KEY"]
+    return create_client(url, key)
+
+def auth_gate():
+    sb = get_supabase_client()
+
+    # 初始化 session 状态
+    if "user" not in st.session_state:
+        st.session_state.user = None
+
+    if st.session_state.user:
+        st.sidebar.success(f"已登录：{st.session_state.user.email}")
+        if st.sidebar.button("退出登录"):
+            sb.auth.sign_out()
+            st.session_state.user = None
+            st.rerun()
+        return st.session_state.user
+
+    st.sidebar.header("登录 / 注册")
+    mode = st.sidebar.radio("模式", ["登录", "注册"], horizontal=True)
+    email = st.sidebar.text_input("Email")
+    password = st.sidebar.text_input("Password", type="password")
+
+    if st.sidebar.button("确认"):
+        try:
+            if mode == "注册":
+                res = sb.auth.sign_up({"email": email, "password": password})
+            else:
+                res = sb.auth.sign_in_with_password({"email": email, "password": password})
+
+            st.session_state.user = res.user
+            st.rerun()
+        except Exception as e:
+            st.sidebar.error(f"失败：{e}")
+
+    st.info("请先在左侧登录/注册后再进入报表页。")
+    st.stop()
+
+# ---- 主流程：先过登录门禁 ----
+user = auth_gate()
+
+# ---- 登录后：这里放你的报表台 ----
+st.title("✅ 登录成功，进入报表台")
+st.write("User ID:", user.id)
 
 # 初始化 session state
 if 'df' not in st.session_state:
